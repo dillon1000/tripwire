@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Configurable local safety checks for deploys, pushes, deletes, migrations, and releases.",
   "type": "module",
+  "packageManager": "pnpm@11.1.3",
   "bin": {
     "tripwire": "./dist/src/cli.js"
   },
