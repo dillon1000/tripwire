@@ -1,0 +1,111 @@
+{
+  "$schema": "../tripwire.schema.json",
+  "actions": {
+    "deploy": {
+      "requireCleanGit": true,
+      "requireBranch": "main",
+      "requirePassingCommand": "pnpm test",
+      "forbidEnv": {
+        "NODE_ENV": "development"
+      },
+      "requireConfirmationIf": [
+        {
+          "databaseMigration": true
+        }
+      ],
+      "integrations": {
+        "github": {
+          "requireCli": true,
+          "requireChecksPassing": true,
+          "requireNoUnresolvedThreads": true
+        },
+        "deployment": {
+          "vercel": {
+            "requireProject": "triphook-production",
+            "command": "vercel project ls"
+          }
+        },
+        "cloud": {
+          "aws": {
+            "requireProfile": "production",
+            "requireAccountId": "123456789012"
+          }
+        },
+        "infrastructure": {
+          "terraform": {
+            "requireCleanPlan": true,
+            "forbidDestroy": true
+          }
+        },
+        "database": {
+          "prisma": {
+            "requireMigrationStatus": true
+          },
+          "requireRecentBackupCommand": "scripts/check-recent-backup.sh"
+        },
+        "docker": {
+          "requireBuild": "docker build -t registry.example.com/triphook:1.0.0 .",
+          "requireTag": "registry.example.com/triphook:1.0.0",
+          "forbidLatestTag": true
+        },
+        "kubernetes": {
+          "requireContext": "prod-cluster",
+          "requireNamespace": "production"
+        },
+        "sentry": {
+          "requireRelease": "1.0.0"
+        },
+        "incident": {
+          "pagerDutyStatusCommand": "scripts/pagerduty-open-incidents.sh"
+        },
+        "issueTracker": {
+          "jira": {
+            "requireBranchTicketPattern": "^[A-Z]+-[0-9]+"
+          }
+        },
+        "packageRegistry": {
+          "npm": {
+            "requireVersionNotPublished": true
+          }
+        },
+        "payments": {
+          "stripe": {
+            "forbidLiveModeEnv": "STRIPE_LIVE_MODE"
+          }
+        }
+      }
+    },
+    "push": {
+      "requireCleanGit": true,
+      "requirePassingCommand": "pnpm test"
+    },
+    "delete": {
+      "requireBranch": "main",
+      "requireConfirmationIf": [
+        {
+          "env": {
+            "TARGET": "production"
+          },
+          "message": "You are about to delete production resources. Continue?"
+        }
+      ]
+    },
+    "migrate": {
+      "requireCleanGit": true,
+      "requireBranch": "main",
+      "requireConfirmationIf": [
+        {
+          "databaseMigration": true
+        }
+      ]
+    },
+    "release": {
+      "requireCleanGit": true,
+      "requireBranch": [
+        "main",
+        "release"
+      ],
+      "requirePassingCommand": "pnpm test"
+    }
+  }
+}

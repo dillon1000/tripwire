@@ -1,0 +1,319 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/tripwire.schema.json",
+  "title": "Tripwire configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "migrationPatterns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "defaults": { "$ref": "#/$defs/action" },
+    "actions": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/action" }
+    }
+  },
+  "$defs": {
+    "stringOrStringArray": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      ]
+    },
+    "envValue": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        { "type": "boolean" }
+      ]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": { "type": "string" },
+        "command": { "$ref": "#/$defs/stringOrStringArray" },
+        "requireCleanGit": { "type": "boolean" },
+        "requireBranch": { "$ref": "#/$defs/stringOrStringArray" },
+        "requirePassingCommand": { "$ref": "#/$defs/stringOrStringArray" },
+        "forbidEnv": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/envValue" }
+        },
+        "baseBranch": { "type": "string" },
+        "migrationPatterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "requireConfirmationIf": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/confirmationCondition" }
+        },
+        "integrations": { "$ref": "#/$defs/integrations" }
+      }
+    },
+    "confirmationCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "databaseMigration": { "type": "boolean" },
+        "message": { "type": "string" },
+        "branch": { "$ref": "#/$defs/stringOrStringArray" },
+        "fileChanged": { "$ref": "#/$defs/stringOrStringArray" },
+        "env": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/envValue" }
+        }
+      }
+    },
+    "commandAssertion": {
+      "type": "object",
+      "required": ["command"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "command": { "type": "string" },
+        "expectExitCode": { "type": "number" },
+        "expectStdoutIncludes": { "$ref": "#/$defs/stringOrStringArray" },
+        "forbidStdoutIncludes": { "$ref": "#/$defs/stringOrStringArray" }
+      }
+    },
+    "booleanOrString": {
+      "oneOf": [
+        { "type": "boolean" },
+        { "type": "string" }
+      ]
+    },
+    "integrations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "github": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requireCli": { "type": "boolean" },
+            "requirePrMerged": { "$ref": "#/$defs/booleanOrString" },
+            "requireChecksPassing": { "$ref": "#/$defs/booleanOrString" },
+            "requireNoUnresolvedThreads": { "$ref": "#/$defs/booleanOrString" },
+            "requireReleaseNotExists": { "type": "string" }
+          }
+        },
+        "deployment": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "vercel": { "$ref": "#/$defs/deploymentProvider" },
+            "netlify": { "$ref": "#/$defs/deploymentProvider" },
+            "fly": { "$ref": "#/$defs/deploymentProvider" },
+            "render": { "$ref": "#/$defs/deploymentProvider" }
+          }
+        },
+        "cloud": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "aws": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireAccountId": { "type": "string" },
+                "requireProfile": { "type": "string" },
+                "command": { "type": "string" }
+              }
+            },
+            "gcp": { "$ref": "#/$defs/cloudProject" },
+            "azure": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireSubscription": { "type": "string" },
+                "command": { "type": "string" }
+              }
+            }
+          }
+        },
+        "infrastructure": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "terraform": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireCleanPlan": { "$ref": "#/$defs/booleanOrString" },
+                "forbidDestroy": { "$ref": "#/$defs/booleanOrString" }
+              }
+            },
+            "pulumi": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireCleanPreview": { "$ref": "#/$defs/booleanOrString" },
+                "forbidDeletes": { "$ref": "#/$defs/booleanOrString" }
+              }
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "prisma": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireMigrationStatus": { "$ref": "#/$defs/booleanOrString" }
+              }
+            },
+            "drizzle": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireCheckCommand": { "type": "string" }
+              }
+            },
+            "knex": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireCurrent": { "$ref": "#/$defs/booleanOrString" }
+              }
+            },
+            "requireRecentBackupCommand": { "type": "string" },
+            "requireReplicaHealthyCommand": { "type": "string" }
+          }
+        },
+        "docker": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requireBuild": { "type": "string" },
+            "requireTag": { "type": "string" },
+            "forbidLatestTag": { "type": "boolean" }
+          }
+        },
+        "kubernetes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requireContext": { "type": "string" },
+            "requireNamespace": { "type": "string" },
+            "command": { "type": "string" }
+          }
+        },
+        "sentry": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requireRelease": { "type": "string" },
+            "command": { "type": "string" }
+          }
+        },
+        "notifications": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "slackWebhookEnv": { "type": "string" },
+            "discordWebhookEnv": { "type": "string" },
+            "message": { "type": "string" }
+          }
+        },
+        "incident": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "pagerDutyStatusCommand": { "type": "string" },
+            "opsgenieStatusCommand": { "type": "string" }
+          }
+        },
+        "issueTracker": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "linear": { "$ref": "#/$defs/ticketProvider" },
+            "jira": { "$ref": "#/$defs/ticketProvider" }
+          }
+        },
+        "packageRegistry": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "npm": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "packageName": { "type": "string" },
+                "version": { "type": "string" },
+                "requireVersionNotPublished": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "payments": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "stripe": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireAccountCommand": { "type": "string" },
+                "forbidLiveModeEnv": { "type": "string" }
+              }
+            },
+            "polar": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requireWorkspaceCommand": { "type": "string" },
+                "forbidProductionEnv": { "type": "string" }
+              }
+            }
+          }
+        },
+        "custom": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/commandAssertion" }
+        }
+      }
+    },
+    "deploymentProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requireProject": { "type": "string" },
+        "requireTarget": { "type": "string" },
+        "requireSite": { "type": "string" },
+        "requireApp": { "type": "string" },
+        "requireService": { "type": "string" },
+        "command": { "type": "string" }
+      }
+    },
+    "cloudProject": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requireProject": { "type": "string" },
+        "command": { "type": "string" }
+      }
+    },
+    "ticketProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requireBranchTicketPattern": { "type": "string" }
+      }
+    }
+  }
+}

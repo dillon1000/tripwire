@@ -1,0 +1,119 @@
+{
+  "$schema": "../tripwire.schema.json",
+  "actions": {
+    "deploy": {
+      "integrations": {
+        "github": {
+          "requireCli": true,
+          "requirePrMerged": true,
+          "requireChecksPassing": true,
+          "requireNoUnresolvedThreads": true,
+          "requireReleaseNotExists": "v1.0.0"
+        },
+        "deployment": {
+          "vercel": {
+            "requireProject": "production-app",
+            "command": "vercel project ls"
+          },
+          "netlify": {
+            "requireSite": "production-site",
+            "command": "netlify status"
+          },
+          "fly": {
+            "requireApp": "production-app",
+            "command": "fly status"
+          },
+          "render": {
+            "requireService": "production-service",
+            "command": "render services"
+          }
+        },
+        "cloud": {
+          "aws": {
+            "requireProfile": "production",
+            "requireAccountId": "123456789012"
+          },
+          "gcp": {
+            "requireProject": "production-project"
+          },
+          "azure": {
+            "requireSubscription": "00000000-0000-0000-0000-000000000000"
+          }
+        },
+        "infrastructure": {
+          "terraform": {
+            "requireCleanPlan": true,
+            "forbidDestroy": true
+          },
+          "pulumi": {
+            "requireCleanPreview": true,
+            "forbidDeletes": true
+          }
+        },
+        "database": {
+          "prisma": {
+            "requireMigrationStatus": true
+          },
+          "drizzle": {
+            "requireCheckCommand": "pnpm drizzle-kit check"
+          },
+          "knex": {
+            "requireCurrent": true
+          },
+          "requireRecentBackupCommand": "scripts/check-recent-backup.sh",
+          "requireReplicaHealthyCommand": "scripts/check-replica-health.sh"
+        },
+        "docker": {
+          "requireBuild": "docker build -t registry.example.com/app:1.0.0 .",
+          "requireTag": "registry.example.com/app:1.0.0",
+          "forbidLatestTag": true
+        },
+        "kubernetes": {
+          "requireContext": "prod-cluster",
+          "requireNamespace": "production"
+        },
+        "sentry": {
+          "requireRelease": "1.0.0"
+        },
+        "notifications": {
+          "slackWebhookEnv": "SLACK_DEPLOY_WEBHOOK_URL",
+          "discordWebhookEnv": "DISCORD_DEPLOY_WEBHOOK_URL",
+          "message": "Tripwire deploy checks passed."
+        },
+        "incident": {
+          "pagerDutyStatusCommand": "scripts/pagerduty-open-incidents.sh",
+          "opsgenieStatusCommand": "scripts/opsgenie-open-incidents.sh"
+        },
+        "issueTracker": {
+          "linear": {
+            "requireBranchTicketPattern": "^[A-Z]+-[0-9]+"
+          },
+          "jira": {
+            "requireBranchTicketPattern": "^[A-Z]+-[0-9]+"
+          }
+        },
+        "packageRegistry": {
+          "npm": {
+            "requireVersionNotPublished": true
+          }
+        },
+        "payments": {
+          "stripe": {
+            "requireAccountCommand": "stripe config --list",
+            "forbidLiveModeEnv": "STRIPE_LIVE_MODE"
+          },
+          "polar": {
+            "requireWorkspaceCommand": "polar organizations list",
+            "forbidProductionEnv": "POLAR_PRODUCTION"
+          }
+        },
+        "custom": [
+          {
+            "name": "internal.change-window",
+            "command": "scripts/check-change-window.sh"
+          }
+        ]
+      }
+    }
+  }
+}
