@@ -7,7 +7,7 @@ It is meant for the gap before CI: the moment where you are about to ask the mac
 ## Install
 
 ```sh
-pnpm add -D tripwire
+pnpm add -D @dillon1000/tripwire
 ```
 
 ## Configure
@@ -40,7 +40,7 @@ You can also put the same object under `"tripwire"` in `package.json`, or use `t
 For typed JavaScript config:
 
 ```js
-import { defineConfig } from "tripwire";
+import { defineConfig } from "@dillon1000/tripwire";
 
 export default defineConfig({
   actions: {
